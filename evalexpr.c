@@ -14,6 +14,22 @@ int ft_strlen(char argument[])
 		i++;
 	return (i);
 }
+
+int isnegnum (char argv[], int negindex)
+{
+	if (negindex == 0)
+		return (1); //if first char, then it is neg number
+	negindex--;
+	while (argv[negindex] == ' ' && negindex > 0)
+		negindex--;
+	if (argv[negindex] == ' ' && negindex == 0)
+		return (1);
+	if (argv[negindex] == '+' || argv[negindex] == '-' || argv[negindex] == '*' || argv[negindex] == '/' || 
+			argv[negindex] == '%' || argv[negindex] == '(') //left paren means neg but not right paren (i.e. (3 + 4) - 5)
+		return (1);
+	else
+		return (0);
+}
 int findheadindex (char argv[], int leftptr, int rightptr)
 {
 	int maxindex = -1;
@@ -29,7 +45,7 @@ int findheadindex (char argv[], int leftptr, int rightptr)
 			rightparencounter += 1;
 		if (rightparencounter == leftparencounter)
 		{
-			if (argv[leftptrtemp] == '+' || argv[leftptrtemp] == '-')
+			if (argv[leftptrtemp] == '+' || (argv[leftptrtemp] == '-' && isnegnum(argv, leftptrtemp) == 0))
 				return (leftptrtemp);
 			if (argv[leftptrtemp] == '*' || argv[leftptrtemp] == '/' || argv[leftptrtemp] == '%')
 				maxindex = leftptrtemp;
@@ -169,13 +185,19 @@ void printtree (nodet *headptr, int rnode)
 }
 int ft_atoi(char *string)
 {
-	int number = 0;
+	int neg = 1;
+	long number = 0;
 	int index = 0;
 	while (string[index] == ' ')
 		index++;
+	if (string[index] == '-')
+	{
+		neg *= -1;
+		index++;
+	}
 	while (string[index] != '\0' && string[index] != ' ')
 		number = (number * 10) + (string[index++] - '0');
-	return (number);
+	return (neg * number);
 }
 
 int numlen(int number)
@@ -183,18 +205,29 @@ int numlen(int number)
 	if (number == 0)
 		return (1);
 	int len = 0;
-	while (number != 0)
+	long numb = number;
+	if (numb < 0)
 	{
-		number /= 10;
+		len++;
+		numb *= -1;
+	}
+	while (numb != 0)
+	{
+		numb /= 10;
 		len++;
 	}
 	return (len);
 }
-void ft_numstring (char *headptr, int number, int *indexptr)
+void ft_numstring (char *textptr, long number, int *indexptr)
 {
+	if (number < 0)
+	{
+		textptr[(*indexptr)++] = '-';
+		number *= -1;
+	}
 	if (number >= 10)
-		ft_numstring(headptr, number / 10, indexptr);
-	headptr[(*indexptr)++] = (number % 10) + '0';
+		ft_numstring(textptr, number / 10, indexptr);
+	textptr[(*indexptr)++] = (number % 10) + '0';
 }
 
 
@@ -277,6 +310,8 @@ int main(int argc, char* argv[])
 	//solving the tree
 	solvetree(&headnode);
 	printf("\nAnswer:  %s\n", headnode.text);
+
+	//printf("Atoi of -32: %i\n", ft_atoi("0"));
 
 }
 	
