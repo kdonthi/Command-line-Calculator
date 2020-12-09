@@ -180,6 +180,8 @@ int ft_atoi(char *string)
 
 int numlen(int number)
 {
+	if (number == 0)
+		return (1);
 	int len = 0;
 	while (number != 0)
 	{
