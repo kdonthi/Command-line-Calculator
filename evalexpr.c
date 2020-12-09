@@ -70,29 +70,58 @@ int isoperator (char argv[])
 
 void leftportion (nodet *headptr, int opindex)
 {
+	int startindex = opindex - 1;
+	int lparencounter = 0;
+	int rparencounter = 0;
+	int index; //index of array we are inserting into
 	nodet* nodeptr;
 	headptr->lptr = nodeptr = malloc(sizeof(nodet));
 	headptr->lptr->lptr = NULL;
 	headptr->lptr->rptr = NULL;
 	nodeptr->text = malloc(sizeof(char) * (opindex + 1));
-	for (int i = 0; i < opindex; i++)
-		(nodeptr->text)[i] = (headptr->text)[i];
-	nodeptr->text[opindex] = '\0';
+	while (startindex > 0)
+	{
+		if (headptr->text[startindex] == '(')
+			lparencounter++;
+		if (headptr->text[startindex] == ')')
+			rparencounter++;
+		if (headptr->text[startindex - 1] == '(' && lparencounter == rparencounter) //startindex can at the very least be 1
+			break;
+		startindex--;
+	}
+	index = 0;
+	for (int i = startindex; i < opindex; i++)
+		(nodeptr->text)[index++] = (headptr->text)[i];
+	nodeptr->text[opindex - startindex] = '\0';
 	//printf("Lnode: %s\n", headptr->lptr->text);
 	//print this out?
 }
 
 void rightportion (nodet *headptr, int opindex, int strlen)
 {
+	int lparencounter = 0;
+	int rparencounter = 0;
 	nodet* nodeptr;
+	int lastind = opindex + 1;
 	int index = 0;
 	headptr->rptr = nodeptr = malloc(sizeof(nodet));
 	headptr->rptr->rptr = NULL;
 	headptr->rptr->lptr = NULL;
 	nodeptr->text = malloc(sizeof(char) * (strlen - opindex)); //last index is strlen - 1, and length of last part is distance to travel from operator
-	for (int i = opindex + 1; i < strlen; i++)
+	while (lastind < strlen)
+	{
+		if (headptr->text[lastind] == '(')
+			lparencounter++;
+		if (headptr->text[lastind] == ')')
+			rparencounter++;
+		if (lparencounter < rparencounter) //break after one past last index we want to go to
+			break;
+		lastind++;
+	}
+
+	for (int i = opindex + 1; i < lastind; i++)
 		(nodeptr->text)[index++] = (headptr->text)[i];
-	nodeptr->text[strlen - opindex - 1] = '\0';
+	nodeptr->text[lastind - opindex - 1] = '\0';
 	//printf("Rnode: %s\n", headptr->rptr->text);
 }
 void addnodes (nodet *headptr) //going to be recursive
