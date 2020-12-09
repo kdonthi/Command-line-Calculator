@@ -7,6 +7,11 @@ typedef struct node {
 	struct node *rptr;
 } nodet;
 
+typedef struct arrnode {
+	char operator;
+	int number;
+} arrnode_t;
+
 int ft_strlen(char argument[])
 {
 	int i = 0;
@@ -167,27 +172,30 @@ void addnodes (nodet *headptr) //going to be recursive
 		return ;
 }
 
-void printtree (nodet *headptr, int rnode)
+void printtree (nodet *headptr, int rnode, arrnode_t array[])
 {
-	if (headptr == NULL && rnode == 0)
+	/*if (headptr == NULL && rnode == 0)
 	{
 		printf("N\n");
 		return ;
-	}
+	} */
+	char text;
+	int index = rnode - 1; //our index is less than the counting to the next levels
 	if (headptr == NULL)
 	{
-		printf("N ");
+		array[index].operator = 'N'; //N means that there is no number
 		return ;
 	}
-	printf(" %s ", headptr->text);
-	if (rnode == 0)
-		printf("\n");
-	printtree(headptr->lptr, 1);
-	/*if (rnode == 1)
-		printtree(headptr->rptr, 1);
-	if (rnode == 0)
-		printtree(headptr->rptr, 0);*/
-	printtree(headptr->rptr, 0);
+	text = headptr->text[0];
+	if (text == '-' || text == '+' || text == '*' || text == '%' || text == '/')
+		array[index].operator = headptr->text[0]; //if there is an operator, it will be in the operator box
+	else
+	{
+		array[index].operator = 'P'; //P means that there is a number
+		array[index].number = atoi(headptr->text);
+	}
+	printtree(headptr->lptr, (rnode * 2), array);
+	printtree(headptr->rptr, ((rnode * 2) + 1), array);
 }
 int ft_atoi(char *string)
 {
@@ -311,11 +319,32 @@ int main(int argc, char* argv[])
 	addnodes(&headnode);
 
 	//printing the tree
-	//printtree(&headnode, 0);
-
+	arrnode_t *array = malloc(sizeof(arrnode_t) * (ft_strlen(argv[1]) + 1));
+	for (int i = 0; i < (ft_strlen(argv[1]) + 1); i++)
+		array[i].operator = 'U'; //saying unused
+	printtree(&headnode, 1, array);
+	int counter = 1;
+	int base2 = 2;
+	int i = 0;
+	while (array[i].operator != 'U' && array[i].operator != '\0') //printing out array (how did this become '\0'?
+	{
+		if (array[i].operator == 'P')
+			printf(" %i ", array[i].number);
+		else if (array[i].operator == 'N')
+			printf(" N ");
+		else //meaning that it is the operator
+			printf(" %c ", array[i].operator);
+		counter++;
+		if (counter == base2)
+		{
+			printf("\n");
+			base2 *= 2;
+		}
+		i++;
+	}
 	//solving the tree
 	solvetree(&headnode);
-	printf("Answer:  %s\n", headnode.text);
+	printf("\nAnswer:  %s\n", headnode.text);
 
 	//printf("Atoi of -32: %i\n", ft_atoi("0"));
 
