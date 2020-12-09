@@ -46,8 +46,14 @@ int findheadindex (char argv[], int leftptr, int rightptr)
 		if (rightparencounter == leftparencounter)
 		{
 			if (argv[leftptrtemp] == '+' || (argv[leftptrtemp] == '-' && isnegnum(argv, leftptrtemp) == 0))
-				return (leftptrtemp);
-			if (argv[leftptrtemp] == '*' || argv[leftptrtemp] == '/' || argv[leftptrtemp] == '%')
+				maxindex = leftptrtemp;
+			else if (maxindex < 0) //only if no positive or negative symbols got there first
+			{
+				if (argv[leftptrtemp] == '*' || argv[leftptrtemp] == '/' || argv[leftptrtemp] == '%')
+					maxindex = leftptrtemp;
+			}
+			else if ((argv[maxindex] != '+' && argv[maxindex] != '-') && (argv[leftptrtemp] == '*' || 
+					argv[leftptrtemp] == '/' || argv[leftptrtemp] == '%')) //is this necessary?
 				maxindex = leftptrtemp;
 		}
 		leftptrtemp++;
@@ -290,7 +296,7 @@ int main(int argc, char* argv[])
 	}
 
 	int headindex = findheadindex(argv[1], 0, ft_strlen(argv[1]));
-	printf("%c\n", argv[1][findheadindex(argv[1], 0, ft_strlen(argv[1]))]);
+	//printf("%c\n", argv[1][findheadindex(argv[1], 0, ft_strlen(argv[1]))]);
 	
 	//putting whole string inside headnode
 	nodet headnode;
@@ -305,11 +311,11 @@ int main(int argc, char* argv[])
 	addnodes(&headnode);
 
 	//printing the tree
-	printtree(&headnode, 0);
+	//printtree(&headnode, 0);
 
 	//solving the tree
 	solvetree(&headnode);
-	printf("\nAnswer:  %s\n", headnode.text);
+	printf("Answer:  %s\n", headnode.text);
 
 	//printf("Atoi of -32: %i\n", ft_atoi("0"));
 
