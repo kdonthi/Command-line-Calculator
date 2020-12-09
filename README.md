@@ -1,4 +1,4 @@
-# EvalExpr
+# Evaluating Expressions
 
 This is a commandline calculator that can take in an expression and return the result.
 
