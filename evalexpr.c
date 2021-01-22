@@ -14,6 +14,7 @@ typedef struct arrnode {
 
 int ft_strlen(char argument[])
 {
+	//Find the length of the character array/string "argument"
 	int i = 0;
 	while (argument[i] != '\0')
 		i++;
@@ -22,6 +23,8 @@ int ft_strlen(char argument[])
 
 int isnegnum (char argv[], int negindex)
 {
+	//Given a string, and the index number of the '-' sign, this function returns 1 if the symbol means the # after the sign is negative, and 0 if it is
+	//a subtraction sign.
 	if (negindex == 0)
 		return (1); //if first char, then it is neg number
 	negindex--;
@@ -32,7 +35,7 @@ int isnegnum (char argv[], int negindex)
 	if (argv[negindex] == '+' || argv[negindex] == '-' || argv[negindex] == '*' || argv[negindex] == '/' || 
 			argv[negindex] == '%' || argv[negindex] == '(') //left paren means neg but not right paren (i.e. (3 + 4) - 5)
 		return (1);
-	else
+	else //if not any of those symbols or a space, then it is a number or the ')' sign, so it is a subtraction sign
 		return (0);
 }
 int findheadindex (char argv[], int leftptr, int rightptr)
@@ -85,6 +88,7 @@ int findheadindex (char argv[], int leftptr, int rightptr)
 
 int isoperator (char argv[])
 {
+	//Returns 1 if there an operator in the string, and 0 if there are no operators
 	int i = -1;
 	int len = ft_strlen(argv);
 	while (++i < len)
@@ -97,6 +101,7 @@ int isoperator (char argv[])
 
 void leftportion (nodet *headptr, int opindex)
 {
+	//Puts the subexpression on the left side of the operator we hook expression on into the text of a new node in the headptr->lptr.
 	int startindex = opindex - 1;
 	int lparencounter = 0;
 	int rparencounter = 0;
@@ -126,6 +131,7 @@ void leftportion (nodet *headptr, int opindex)
 
 void rightportion (nodet *headptr, int opindex, int strlen)
 {
+	//Puts the subexpression on the right side of the operator we are hooking the expression on into the text of a new node in the headptr->rptr.
 	int lparencounter = 0;
 	int rparencounter = 0;
 	nodet* nodeptr;
@@ -172,7 +178,7 @@ void addnodes (nodet *headptr) //going to be recursive
 		return ;
 }
 
-void printtree (nodet *headptr, int rnode, arrnode_t array[])
+void printtree (nodet *headptr, int rnode, arrnode_t array[], int *largestindex)
 {
 	/*if (headptr == NULL && rnode == 0)
 	{
@@ -184,6 +190,8 @@ void printtree (nodet *headptr, int rnode, arrnode_t array[])
 	if (headptr == NULL)
 	{
 		array[index].operator = 'N'; //N means that there is no number
+		if (index > *largestindex)
+			*largestindex = index;
 		return ;
 	}
 	text = headptr->text[0];
@@ -194,11 +202,12 @@ void printtree (nodet *headptr, int rnode, arrnode_t array[])
 		array[index].operator = 'P'; //P means that there is a number
 		array[index].number = atoi(headptr->text);
 	}
-	printtree(headptr->lptr, (rnode * 2), array);
-	printtree(headptr->rptr, ((rnode * 2) + 1), array);
+	printtree(headptr->lptr, (rnode * 2), array, largestindex);
+	printtree(headptr->rptr, ((rnode * 2) + 1), array, largestindex);
 }
 int ft_atoi(char *string)
 {
+	//Converts a string into a number
 	int neg = 1;
 	long number = 0;
 	int index = 0;
@@ -216,6 +225,7 @@ int ft_atoi(char *string)
 
 int numlen(int number)
 {
+	//Calculates the length of a number (accounting for negative sign)
 	if (number == 0)
 		return (1);
 	int len = 0;
@@ -234,6 +244,7 @@ int numlen(int number)
 }
 void ft_numstring (char *textptr, long number, int *indexptr)
 {
+	//Converts "number" into a string and puts it in textptr using the index stored at the memory address of indexptr
 	if (number < 0)
 	{
 		textptr[(*indexptr)++] = '-';
@@ -247,18 +258,24 @@ void ft_numstring (char *textptr, long number, int *indexptr)
 
 void solvetree (nodet *headptr)
 {
+	//Solves the tree recursively, starting with the smallest subexpression and replacing textnodes with the result of their expression.
 	int leftnumber;
 	int rightnumber;
 	int numbertoinsert;
 	int index;
-	if (headptr == NULL || (headptr->lptr == NULL && headptr->rptr == NULL)) // taking care of when we have NULLs surrounding first number
+	if (/*headptr == NULL ||*/ (headptr->lptr == NULL && headptr->rptr == NULL)) // if both left and right nodes are NULL, then we don't have to do any computation
 		return ;
 
-	if (headptr->lptr->lptr != NULL || headptr->lptr->rptr != NULL || headptr->rptr->lptr != NULL || headptr->rptr->rptr != NULL) //can also do to check if nums
+	//computing result of subtrees before using their result
+	if (headptr->lptr->lptr != NULL && headptr->lptr->rptr != NULL)
+		solvetree(headptr->lptr);
+	if (headptr->rptr->lptr != NULL && headptr->rptr->rptr != NULL)
+		solvetree(headptr->rptr);
+	/*if (headptr->lptr->lptr != NULL || headptr->lptr->rptr != NULL || headptr->rptr->lptr != NULL || headptr->rptr->rptr != NULL) //can also do to ch
 	{
 		solvetree(headptr->lptr);
 		solvetree(headptr->rptr);
-	}
+	}*/
 	leftnumber = ft_atoi(headptr->lptr->text);
 	rightnumber = ft_atoi(headptr->rptr->text);
 	if (headptr->text[0] == '*')
@@ -278,7 +295,7 @@ void solvetree (nodet *headptr)
 	index = 0;
 	ft_numstring(headptr->text, numbertoinsert, &index);
 	headptr->text[numlen(numbertoinsert)] = '\0';
-	headptr->lptr = NULL; //setting prev numbers to null so that higher order processes can happen
+	headptr->lptr = NULL; //setting prev numbers to null so that higher order processes can happen and you don't solve this subtree again
 	headptr->rptr = NULL; 
 }
 
@@ -319,25 +336,47 @@ int main(int argc, char* argv[])
 	addnodes(&headnode);
 
 	//printing the tree
-	arrnode_t *array = malloc(sizeof(arrnode_t) * (ft_strlen(argv[1]) + 1));
+	int largenumber = 0;
+	int *largestnumber = &largenumber;
+	arrnode_t *array = malloc(sizeof(arrnode_t) * (ft_strlen(argv[1]) + 1)); //upper bound on numbers is amount of characters in expression
 	for (int i = 0; i < (ft_strlen(argv[1]) + 1); i++)
 		array[i].operator = 'U'; //saying unused
-	printtree(&headnode, 1, array);
+	array[ft_strlen(argv[1])].operator = '\0'; 
+	printtree(&headnode, 1, array, largestnumber);
+	int binarycounter = 1;
+	int rows = 0;
+	while (binarycounter <= *largestnumber + 1)
+	{
+		binarycounter *= 2; //binary counter becomes the power of two greater than the amount of numbers 
+		rows += 1;
+	}
+	printf("Number of units (counting): %i,  Rows: %i\n", *largestnumber + 1, rows);
 	int counter = 1;
 	int base2 = 2;
 	int i = 0;
-	while (array[i].operator != 'U' && array[i].operator != '\0') //printing out array (how did this become '\0'?
+	int spacing = rows;
+	for (int l = 0; l < spacing; l++)
+		printf(" ");
+	spacing -= 1;
+	while (/*array[i].operator != 'U' &&*/ array[i].operator != '\0') //printing out array (how did this become '\0'?
 	{
 		if (array[i].operator == 'P')
-			printf(" %i ", array[i].number);
+			printf("%i ", array[i].number);
 		else if (array[i].operator == 'N')
-			printf(" N ");
+			printf("N ");
+		else if (array[i].operator == 'U')
+			printf("  ");
 		else //meaning that it is the operator
-			printf(" %c ", array[i].operator);
+			printf("%c ", array[i].operator);
+		if (i % 2 == 0)
+			printf(" ");
 		counter++;
 		if (counter == base2)
 		{
 			printf("\n");
+			for (int l = 0; l < spacing; l++)
+				printf(" ");
+			spacing -= 1;
 			base2 *= 2;
 		}
 		i++;
